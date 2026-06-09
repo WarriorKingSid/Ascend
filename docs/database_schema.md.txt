@@ -1,0 +1,86 @@
+# Database Schema - Ascend 
+We implemented this schema in Momen to support the discovery of various opportunities, trust verification, and community interaction.
+
+---
+
+## Core Tables
+
+### Account (Users)
+Stores user profiles.
+
+- name
+- email
+- skills
+- interests
+- relations: comments, reports, watchlist_items
+
+---
+
+### Organization
+Stores companies and institutions posting opportunities.
+
+- name
+- description
+- email_domain
+- registration_info
+- status (Verified / Pending / Flagged)
+- relations: opportunities
+
+---
+
+### Opportunity
+Main listing table for internships, programs, and certifications.
+
+- title
+- description
+- cost
+- currency
+- location_name
+- coordinates
+- deadline
+- status (Verified / Pending / Flagged)
+- topic
+- relations: organization, comments, skills
+
+---
+
+### Soft Skill
+Defines skill tags used for filtering.
+
+- name
+
+---
+
+### Comment
+Community discussion system.
+
+- content
+- status (Visible / Hidden)
+- relations: opportunity, author, reports, replies
+
+---
+
+### Comment Report
+Handles moderation.
+
+- reason
+- review_status
+- relations: comment, reporter
+
+---
+
+### Watchlist Item
+Stores saved opportunities.
+
+- relations: account, opportunity
+
+---
+
+## Purpose
+
+This database enables:
+- Opportunity search and filtering
+- AI-based recommendations
+- Trust verification system
+- Community discussions and moderation
+- User personalization (watchlists)

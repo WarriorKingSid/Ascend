@@ -1,0 +1,51 @@
+## Database Implementation (Momen Auto-Generated)
+
+The backend database for Ascent was generated using Momen AI based on the system requirements.
+
+### Generated Tables:
+- account (users)
+- organization
+- opportunity
+- soft_skill
+- opportunity_skill_assignment
+- comment
+- comment_report
+- watchlist_item
+
+### Key Relationships:
+- Users = Comments, Reports, Watchlist
+- Organizations = Opportunities
+- Opportunities = Soft Skills, Comments
+- Comments = Reports + Replies
+
+### Purpose:
+This schema supports:
+- Opportunity search and filtering
+- Trust verification system
+- Community commenting and moderation
+- AI-based recommendations
+- User watchlists and tracking
+
+# Recommendation Flow (AI System Design)
+
+## Purpose
+Generate ranked opportunity recommendations using AI.
+
+## Flow
+1. Fetch user by user_id
+2. Fetch all opportunities
+3. Send both datasets to AI Core agent
+4. AI ranks opportunities based on relevance
+5. Return top 5 results
+
+## Inputs
+- user_id (Number)
+
+## Outputs
+- ranked opportunities
+- explanation per match
+
+## Notes
+- Uses asynchronous AI execution
+- No pre-filtering applied before AI
+- Ranking fully handled by AI model

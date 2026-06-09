@@ -1,3 +1,26 @@
-__pycache__/
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Environment files (if you ever add APIs locally)
 .env
+
+# Temporary files
+*.tmp
+
+# Node modules (only if you add frontend code later)
 node_modules/
+
+# Build outputs (future-proofing)
+dist/
+build/
+
+# Momen / platform exports (if any local exports happen)
+*.export

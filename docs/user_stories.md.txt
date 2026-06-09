@@ -1,0 +1,45 @@
+# Ascent User Stories
+
+## Opportunity Seeker 
+Helps search and filter various opportunities based on different needs such as costs, locations or soft skills, this helps user find high-quality experiences that help fit their budget and goals. 
+
+### Requirements 
+- Search bar returns results matching titles or descriptions
+- Filter by soft skills (e.g., Leadership, Public Speaking)
+- Filter by cost with multiple currency support
+- Choose GPS auto-location or manual location input
+- Sort opportunities by application deadline
+
+------------
+
+## Community User 
+Engages with the community and reports harmful or inaccurate information, this helps users share and read various experiences to figure out if an opportunity interests them, it helps keep the community safe from misinformation.
+
+### Requirements 
+- Each opportunity has a comment section
+- Users can reply to comments 
+- Users can report comments
+- One report immediately hides the comment
+- Hidden comments go to admin review
+
+------------
+
+## Trust-Focused User 
+Knows the reliability and verification status of a listing such as deadlines and if its trustworthy, helps the user distinguish between reputable programs versus ones which may require more caution preventing scams or any money sandalling. 
+
+### Requirements 
+- System verifies organizations using email domain or registration info
+- Listings show "Verified", "Pending", or "Flagged"
+- Verified listing show a Trust badge
+- Unverified listing are still visible
+
+------------
+
+## Organization User
+Submits and manages their organizations internship or certification listings, helps reach a global audience of students and professionals looking for skill enhancing opportunities
+
+### Requirements 
+- Create organization profile
+- Submit opportunity listings
+- View listing status (Verified/Pending/Flagged)
+- Respond to comments 
