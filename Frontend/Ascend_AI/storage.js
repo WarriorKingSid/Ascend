@@ -39,7 +39,7 @@ function writeJson(key, value) {
 
 const storage = {
   getProfile() {
-    return readJson(STORAGE_KEYS.profile, { name: '', school: '', skills: [] });
+    return readJson(STORAGE_KEYS.profile, { name: '', school: '', location: '', skills: [] });
   },
 
   saveProfile(profile) {

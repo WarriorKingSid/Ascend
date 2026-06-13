@@ -33,6 +33,7 @@ const features = {
     const profile = storage.getProfile();
     document.getElementById('profileName').value = profile.name;
     document.getElementById('profileSchool').value = profile.school;
+    document.getElementById('profileLocation').value = profile.location || '';
     document.getElementById('profileSkills').value = profile.skills.join(', ');
     this.updateProfilePreview(profile);
 
@@ -46,6 +47,7 @@ const features = {
       const updated = {
         name: document.getElementById('profileName').value.trim(),
         school: document.getElementById('profileSchool').value.trim(),
+        location: document.getElementById('profileLocation').value.trim(),
         skills,
       };
 
@@ -61,13 +63,14 @@ const features = {
     const el = document.getElementById('profilePreview');
     if (!el) return;
 
-    if (!profile.name && !profile.skills.length) {
+    if (!profile.name && !profile.skills.length && !profile.location) {
       el.innerHTML = '<p class="empty-hint">Add your skills to see personalized fit scores on search results.</p>';
       return;
     }
 
+    const locationPart = profile.location ? ` · 📍 ${escapeHtml(profile.location)}` : '';
     el.innerHTML = `
-      <p><strong>${escapeHtml(profile.name || 'Student')}</strong>${profile.school ? ` · ${escapeHtml(profile.school)}` : ''}</p>
+      <p><strong>${escapeHtml(profile.name || 'Student')}</strong>${profile.school ? ` · ${escapeHtml(profile.school)}` : ''}${locationPart}</p>
       <div class="tags">${profile.skills.map((s) => `<span class="tag tag--you">${escapeHtml(s)}</span>`).join('') || '<span class="empty-hint">No skills added yet</span>'}</div>
     `;
   },

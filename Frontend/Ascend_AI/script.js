@@ -423,6 +423,14 @@ async function showDetails(id) {
     const description = job.description
       ? `<p class="modal-description">${escapeHtml(job.description)}</p>`
       : '';
+    
+    const deadline = job.deadline
+      ? `<p><strong>Application Deadline:</strong> ${escapeHtml(job.deadline)}</p>`
+      : '';
+    
+    const applicationLink = job.applicationUrl
+      ? `<p><a href="${job.applicationUrl}" target="_blank" class="details-btn" style="display: inline-block; margin-top: 10px;">Apply Now</a></p>`
+      : '';
 
     const profile = storage.getProfile();
     const personalFit = calcSkillMatch(profile.skills, job.skills);
@@ -434,6 +442,7 @@ async function showDetails(id) {
       <h2 id="modalTitle">${escapeHtml(job.title)}</h2>
       <p class="modal-company">${escapeHtml(job.company)}</p>
       ${location}
+      ${deadline}
       <div class="modal-score">
         <span class="score">${job.matchScore}% match</span>
         <span class="verify ${job.verified ? 'verified' : 'unverified'}">${job.verified ? '✓ Verified Employer' : 'Unverified'}</span>
@@ -450,6 +459,7 @@ async function showDetails(id) {
           ${isSaved ? 'Saved' : 'Save internship'}
         </button>
       </div>
+      ${applicationLink}
     `;
 
     openModal();
