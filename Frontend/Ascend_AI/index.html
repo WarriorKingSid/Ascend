@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ascend AI helps students find internships, evaluate fit with match scores, and verify employers before applying.">
+  <meta name="theme-color" content="#2563eb">
+  <title>Ascend AI — Internship Discovery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    if (localStorage.getItem('ascend_ai_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  </script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header>
+  <nav aria-label="Main navigation">
+    <a class="logo" href="#search">Ascend AI</a>
+    <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navMenu" aria-label="Open menu">
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+    </button>
+    <div class="nav-links" id="navMenu">
+      <a href="#search">Search</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#profile">Profile</a>
+      <a href="#saved">Saved <span class="nav-badge hidden" id="navSavedBadge" aria-label="saved count">0</span></a>
+      <a href="#tracker">Tracker</a>
+      <a href="#about">How It Works</a>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+
+<section class="hero" id="search">
+  <div class="badge">Internship Discovery Platform</div>
+  <h1>Find internships with confidence.</h1>
+  <p>Search opportunities, evaluate fit with match scores, and verify employers before you apply.</p>
+  <form class="search-container" id="searchForm" role="search">
+    <label class="visually-hidden" for="searchInput">Search internships</label>
+    <input type="search" id="searchInput" placeholder="e.g. software engineering, Google, Python…" autocomplete="off" required minlength="2">
+    <button type="submit" id="searchBtn">Search</button>
+  </form>
+  <div class="quick-searches" aria-label="Popular searches">
+    <span class="quick-label">Try:</span>
+    <button type="button" class="chip" data-query="software engineering">Software Engineering</button>
+    <button type="button" class="chip" data-query="data science">Data Science</button>
+    <button type="button" class="chip" data-query="machine learning">Machine Learning</button>
+    <button type="button" class="chip" data-query="design">Product Design</button>
+  </div>
+  <div id="recentSearches" class="recent-searches hidden" aria-label="Recent searches"></div>
+</section>
+
+<section class="features" aria-label="Platform features">
+  <div class="feature-card">
+    <div class="feature-icon" aria-hidden="true">🔍</div>
+    <h3>Smart Search</h3>
+    <p>Filter by role, company, or required skills in one place.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon" aria-hidden="true">📊</div>
+    <h3>Match Score</h3>
+    <p>See how well each opportunity aligns with your profile.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon" aria-hidden="true">✓</div>
+    <h3>Verification</h3>
+    <p>Know which employers have been reviewed for legitimacy.</p>
+  </div>
+</section>
+
+<section class="page-section" id="dashboard" aria-labelledby="dashboardHeading">
+  <h2 id="dashboardHeading">Your Dashboard</h2>
+  <p class="section-desc">A snapshot of your internship hunt — all stored locally on your device.</p>
+  <div class="stats-grid" id="dashboardStats"></div>
+</section>
+
+<section class="page-section profile-section" id="profile" aria-labelledby="profileHeading">
+  <h2 id="profileHeading">Your Profile</h2>
+  <p class="section-desc">Add your skills to see a personalized fit score on every search result.</p>
+  <div class="profile-layout">
+    <form id="profileForm" class="profile-form">
+      <label for="profileName">Name</label>
+      <input type="text" id="profileName" placeholder="Your name">
+      <label for="profileSchool">School</label>
+      <input type="text" id="profileSchool" placeholder="University or college">
+      <label for="profileSkills">Skills <span class="label-hint">(comma-separated)</span></label>
+      <input type="text" id="profileSkills" placeholder="Python, React, SQL, Git…">
+      <button type="submit" class="details-btn">Save Profile</button>
+    </form>
+    <div class="profile-preview feature-card">
+      <h3>Preview</h3>
+      <div id="profilePreview"></div>
+    </div>
+  </div>
+</section>
+
+<section class="results" id="results" aria-labelledby="resultsHeading">
+  <div id="promptState" class="prompt-state">
+    <div class="empty-icon" aria-hidden="true">🎓</div>
+    <h2 id="resultsHeading">What kind of internship are you looking for?</h2>
+    <p class="empty-hint">Enter a role, company, skill, or location above — results appear only when you search.</p>
+  </div>
+
+  <div id="resultsPanel" class="results-panel hidden">
+    <div class="section-header">
+      <h2>Search Results</h2>
+      <div class="section-controls">
+        <p class="results-count" id="resultsCount" aria-live="polite"></p>
+        <label class="filter-toggle">
+          <input type="checkbox" id="skillsMatchOnly">
+          Strong skill match
+        </label>
+        <label class="filter-toggle">
+          <input type="checkbox" id="verifiedOnly">
+          Verified only
+        </label>
+        <label class="sort-label" for="sortSelect">
+          <span class="visually-hidden">Sort results by</span>
+          <select id="sortSelect" aria-label="Sort internships">
+            <option value="match-desc">Best match</option>
+            <option value="company-asc">Company A–Z</option>
+            <option value="title-asc">Role A–Z</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+  <div id="loadingState" class="loading-state hidden" aria-busy="true" aria-live="polite">
+    <div class="skeleton-grid" id="skeletonGrid" aria-hidden="true"></div>
+    <p class="loading-text">Loading internships…</p>
+  </div>
+
+  <div id="errorState" class="error-state hidden" role="alert">
+    <p>Something went wrong.</p>
+    <button type="button" class="details-btn" id="retryBtn">Try again</button>
+  </div>
+
+  <div id="resultsContainer" class="job-grid"></div>
+
+  <div id="emptyState" class="empty-state hidden">
+    <div class="empty-icon" aria-hidden="true">🔎</div>
+    <p>No internships match your search.</p>
+    <p class="empty-hint">Try a different keyword, company name, or skill.</p>
+    <button type="button" class="details-btn" id="clearSearchBtn">New search</button>
+  </div>
+  </div>
+</section>
+
+<section class="results saved-section" id="saved" aria-labelledby="savedHeading">
+  <div class="section-header">
+    <h2 id="savedHeading">Saved Internships</h2>
+    <div class="section-controls">
+      <p class="results-count" id="savedCount" aria-live="polite"></p>
+      <button type="button" class="text-btn hidden" id="clearSavedBtn">Clear all</button>
+    </div>
+  </div>
+
+  <div id="savedContainer" class="job-grid"></div>
+
+  <div id="savedEmpty" class="empty-state">
+    <div class="empty-icon" aria-hidden="true">☆</div>
+    <p>You haven't saved any internships yet.</p>
+    <p class="empty-hint">Search for roles above and tap Save on ones you want to revisit.</p>
+    <a class="details-btn" href="#search">Start searching</a>
+  </div>
+</section>
+
+<section class="page-section tracker-section" id="tracker" aria-labelledby="trackerHeading">
+  <h2 id="trackerHeading">Application Tracker</h2>
+  <p class="section-desc">Track where each saved role stands and check off interview prep steps.</p>
+  <div id="trackerBoard" class="tracker-board"></div>
+  <div id="trackerEmpty" class="empty-state">
+    <div class="empty-icon" aria-hidden="true">📋</div>
+    <p>No saved internships to track yet.</p>
+    <p class="empty-hint">Save roles from search results to manage them here.</p>
+    <a class="details-btn" href="#search">Start searching</a>
+  </div>
+</section>
+
+<section id="about" class="about-section" aria-labelledby="aboutHeading">
+  <h2 id="aboutHeading">How Ascend AI Works</h2>
+  <div class="about-grid">
+    <div class="feature-card">
+      <span class="step-number" aria-hidden="true">1</span>
+      <h3>Search</h3>
+      <p>Browse internships from top companies and filter by what matters to you.</p>
+    </div>
+    <div class="feature-card">
+      <span class="step-number" aria-hidden="true">2</span>
+      <h3>Evaluate Fit</h3>
+      <p>Compare your skills against each role's requirements with a match score.</p>
+    </div>
+    <div class="feature-card">
+      <span class="step-number" aria-hidden="true">3</span>
+      <h3>Apply with Confidence</h3>
+      <p>Check employer verification status before you invest time in an application.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>Ascend AI — Built to help students land the right internship.</p>
+</footer>
+
+<div id="compareBar" class="compare-bar hidden" role="region" aria-label="Compare internships">
+  <span id="compareCount">0 selected</span>
+  <div class="compare-bar-actions">
+    <button type="button" class="text-btn" id="clearCompareBtn">Clear</button>
+    <button type="button" class="details-btn" id="compareBtn" disabled>Compare roles</button>
+  </div>
+</div>
+
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-content" role="document">
+    <button type="button" class="close" id="modalClose" aria-label="Close details">&times;</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="storage.js"></script>
+<script src="features.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
