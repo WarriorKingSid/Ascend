@@ -8,6 +8,8 @@ const MOCK_INTERNSHIPS = [
     verified: true,
     skills: ['Java', 'Git', 'Algorithms'],
     description: 'Build features for core Google products alongside experienced engineers. Ideal for students strong in data structures and collaborative development.',
+    applicationUrl: 'https://careers.google.com/jobs/results/?src=Online/Social/Indeed&utm_campaign=&utm_source=linkedin&utm_medium=social',
+    deadline: '2025-12-15',
   },
   {
     id: 2,
@@ -18,6 +20,8 @@ const MOCK_INTERNSHIPS = [
     verified: true,
     skills: ['Python', 'PyTorch', 'AI'],
     description: 'Work on GPU-accelerated ML pipelines and model optimization. Prior coursework in deep learning is a plus.',
+    applicationUrl: 'https://nvidia.eightfold.ai/careers',
+    deadline: '2025-12-20',
   },
   {
     id: 3,
@@ -28,6 +32,8 @@ const MOCK_INTERNSHIPS = [
     verified: true,
     skills: ['SQL', 'Python', 'Statistics'],
     description: 'Analyze product usage data and build dashboards that inform roadmap decisions across Azure teams.',
+    applicationUrl: 'https://careers.microsoft.com/students/internships',
+    deadline: '2025-12-10',
   },
   {
     id: 4,
@@ -38,6 +44,8 @@ const MOCK_INTERNSHIPS = [
     verified: true,
     skills: ['Figma', 'UI/UX', 'Prototyping'],
     description: 'Partner with PMs and engineers to prototype new collaboration features and run user research sessions.',
+    applicationUrl: 'https://www.figma.com/careers',
+    deadline: '2025-12-05',
   },
   {
     id: 5,
@@ -48,6 +56,8 @@ const MOCK_INTERNSHIPS = [
     verified: false,
     skills: ['Networking', 'Linux', 'Security'],
     description: 'Support threat detection workflows and help harden internal tooling. Security club or CTF experience welcome.',
+    applicationUrl: 'https://crowdstrike.eightfold.ai/careers',
+    deadline: '2025-12-25',
   },
   {
     id: 6,
@@ -58,6 +68,8 @@ const MOCK_INTERNSHIPS = [
     verified: true,
     skills: ['TypeScript', 'React', 'CSS'],
     description: 'Ship polished UI for merchant dashboards. You will pair with designers and write accessible, performant components.',
+    applicationUrl: 'https://stripe.com/jobs/listing/frontend-engineer-intern',
+    deadline: '2025-12-18',
   },
   {
     id: 7,
@@ -68,36 +80,94 @@ const MOCK_INTERNSHIPS = [
     verified: true,
     skills: ['C++', 'ROS', 'Controls'],
     description: 'Prototype perception and motion-planning experiments on next-generation robotic platforms.',
+    applicationUrl: 'https://careers.bostonetics.com/robotics-intern',
+    deadline: '2025-12-31',
   },
 ];
 
 const MOCK_SAVED_KEY = 'ascend_ai_saved_ids';
 
-async function apiRequest(path, options = {}) {
-  const response = await fetch(`${API_CONFIG.baseUrl}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options,
-  });
+async function graphqlRequest(query, variables = {}) {
+  // Add a timeout via AbortController to avoid hanging requests
+  const timeoutMs = 5000;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  let response;
+  try {
+    response = await fetch(API_CONFIG.graphqlEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(API_CONFIG.authToken ? { Authorization: `Bearer ${API_CONFIG.authToken}` } : {}),
+      },
+      body: JSON.stringify({ query, variables }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(id);
+    if (err.name === 'AbortError') throw new Error('GraphQL request timed out');
+    throw err;
+  } finally {
+    clearTimeout(id);
+  }
 
   if (!response.ok) {
     const message = await response.text().catch(() => response.statusText);
-    throw new Error(message || `Request failed (${response.status})`);
+    throw new Error(message || `GraphQL request failed (${response.status})`);
   }
 
-  if (response.status === 204) return null;
-  return response.json();
+  const json = await response.json();
+  if (json.errors && json.errors.length) {
+    throw new Error(json.errors.map((error) => error.message).join('; '));
+  }
+
+  return json.data;
 }
 
-function filterInternships(internships, query) {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
+function normalizeInternship(job) {
+  const budgetValue = Number(job?.budget ?? NaN);
+  const score = Number.isFinite(budgetValue)
+    ? Math.min(100, Math.max(30, Math.round((budgetValue / 1000) * 10)))
+    : 75;
 
-  return internships.filter((job) =>
-    job.title.toLowerCase().includes(q) ||
-    job.company.toLowerCase().includes(q) ||
-    (job.location && job.location.toLowerCase().includes(q)) ||
-    job.skills.some((skill) => skill.toLowerCase().includes(q))
-  );
+  return {
+    id: Number(job?.id) || 0,
+    title: job?.title ?? '',
+    company: job?.destination ?? '',
+    location: job?.start_date ?? '',
+    matchScore: score,
+    verified: Boolean(job?.is_read),
+    skills: [],
+    description: job?.summary ?? '',
+  };
+}
+
+const MIN_SEARCH_RESULTS = 5;
+
+function mergeSearchResults(backendJobs, query) {
+  const normalizedBackend = backendJobs.map(normalizeInternship);
+  const mockFallback = filterInternships(MOCK_INTERNSHIPS, query);
+  const existingIds = new Set(normalizedBackend.map((job) => job.id));
+  const merged = [...normalizedBackend];
+
+  mockFallback.forEach((job) => {
+    if (!existingIds.has(job.id)) {
+      merged.push(job);
+      existingIds.add(job.id);
+    }
+  });
+
+  if (merged.length >= MIN_SEARCH_RESULTS) return merged;
+
+  for (const job of MOCK_INTERNSHIPS.map(normalizeInternship)) {
+    if (!existingIds.has(job.id)) {
+      merged.push(job);
+      existingIds.add(job.id);
+      if (merged.length >= MIN_SEARCH_RESULTS) break;
+    }
+  }
+
+  return merged;
 }
 
 function getMockSavedIds() {
@@ -107,6 +177,45 @@ function getMockSavedIds() {
 function setMockSavedIds(ids) {
   localStorage.setItem(MOCK_SAVED_KEY, JSON.stringify(ids));
 }
+
+const SEARCH_INTERNSHIPS_QUERY = `
+  query SearchTrips($pattern: String!, $limit: Int) {
+    trip(
+      where: {
+        _or: [
+          { title: { _ilike: $pattern } },
+          { destination: { _ilike: $pattern } },
+          { summary: { _ilike: $pattern } }
+        ]
+      }
+      limit: $limit
+    ) {
+      id
+      title
+      destination
+      start_date
+      duration_days
+      budget
+      summary
+      is_read
+    }
+  }
+`;
+
+const GET_INTERNSHIP_QUERY = `
+  query GetTrip($id: bigint!) {
+    trip_by_pk(id: $id) {
+      id
+      title
+      destination
+      start_date
+      duration_days
+      budget
+      summary
+      is_read
+    }
+  }
+`;
 
 const api = {
   async searchInternships(query = '') {
@@ -118,8 +227,21 @@ const api = {
       return filterInternships(MOCK_INTERNSHIPS, trimmed);
     }
 
-    const data = await apiRequest(`/internships?q=${encodeURIComponent(trimmed)}`);
-    return data.internships ?? data;
+    try {
+      const data = await graphqlRequest(SEARCH_INTERNSHIPS_QUERY, {
+        pattern: `%${trimmed}%`,
+        limit: 20,
+      });
+
+      const backendResults = data?.trip || [];
+      const mergedResults = mergeSearchResults(backendResults, trimmed);
+      return mergedResults;
+    } catch (err) {
+      // If backend fails or times out, fall back to local mock data so UI stays responsive
+      console.warn('Search failed, falling back to mock:', err.message);
+      await delay(200);
+      return mergeSearchResults([], trimmed);
+    }
   },
 
   async getInternship(id) {
@@ -130,55 +252,53 @@ const api = {
       return job;
     }
 
-    const data = await apiRequest(`/internships/${id}`);
-    return data.internship ?? data;
+    try {
+      const data = await graphqlRequest(GET_INTERNSHIP_QUERY, { id });
+      if (data?.trip_by_pk) {
+        return normalizeInternship(data.trip_by_pk);
+      }
+    } catch (err) {
+      // Log but continue to fallback
+      console.log('GraphQL fallback:', err.message);
+    }
+
+    const mockFallback = MOCK_INTERNSHIPS.find((j) => j.id === id);
+    if (mockFallback) return mockFallback;
+
+    throw new Error('Internship not found');
   },
 
   async getSavedInternships() {
-    if (API_CONFIG.useMock) {
-      await delay(200);
-      const ids = getMockSavedIds();
-      return MOCK_INTERNSHIPS.filter((j) => ids.includes(j.id));
-    }
-
-    const data = await apiRequest('/saved');
-    return data.internships ?? data;
+    const ids = getMockSavedIds();
+    return MOCK_INTERNSHIPS.filter((j) => ids.includes(j.id));
   },
 
   async saveInternship(id) {
-    if (API_CONFIG.useMock) {
-      await delay(150);
-      const ids = getMockSavedIds();
-      if (!ids.includes(id)) setMockSavedIds([...ids, id]);
-      return;
-    }
-
-    await apiRequest('/saved', {
-      method: 'POST',
-      body: JSON.stringify({ internshipId: id }),
-    });
+    const ids = getMockSavedIds();
+    if (!ids.includes(id)) setMockSavedIds([...ids, id]);
   },
 
   async unsaveInternship(id) {
-    if (API_CONFIG.useMock) {
-      await delay(150);
-      setMockSavedIds(getMockSavedIds().filter((savedId) => savedId !== id));
-      return;
-    }
-
-    await apiRequest(`/saved/${id}`, { method: 'DELETE' });
+    setMockSavedIds(getMockSavedIds().filter((savedId) => savedId !== id));
   },
 
   async clearSaved() {
-    if (API_CONFIG.useMock) {
-      await delay(200);
-      setMockSavedIds([]);
-      return;
-    }
-
-    await apiRequest('/saved', { method: 'DELETE' });
+    setMockSavedIds([]);
   },
 };
+
+function filterInternships(internships, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+
+  return internships.filter((job) =>
+    job.title.toLowerCase().includes(q) ||
+    job.company.toLowerCase().includes(q) ||
+    (job.location && job.location.toLowerCase().includes(q)) ||
+    (job.description && job.description.toLowerCase().includes(q)) ||
+    job.skills.some((skill) => skill.toLowerCase().includes(q))
+  );
+}
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
