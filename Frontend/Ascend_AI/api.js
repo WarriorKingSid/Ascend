@@ -88,14 +88,28 @@ const MOCK_INTERNSHIPS = [
 const MOCK_SAVED_KEY = 'ascend_ai_saved_ids';
 
 async function graphqlRequest(query, variables = {}) {
-  const response = await fetch(API_CONFIG.graphqlEndpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(API_CONFIG.authToken ? { Authorization: `Bearer ${API_CONFIG.authToken}` } : {}),
-    },
-    body: JSON.stringify({ query, variables }),
-  });
+  // Add a timeout via AbortController to avoid hanging requests
+  const timeoutMs = 5000;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  let response;
+  try {
+    response = await fetch(API_CONFIG.graphqlEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(API_CONFIG.authToken ? { Authorization: `Bearer ${API_CONFIG.authToken}` } : {}),
+      },
+      body: JSON.stringify({ query, variables }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(id);
+    if (err.name === 'AbortError') throw new Error('GraphQL request timed out');
+    throw err;
+  } finally {
+    clearTimeout(id);
+  }
 
   if (!response.ok) {
     const message = await response.text().catch(() => response.statusText);
@@ -213,14 +227,21 @@ const api = {
       return filterInternships(MOCK_INTERNSHIPS, trimmed);
     }
 
-    const data = await graphqlRequest(SEARCH_INTERNSHIPS_QUERY, {
-      pattern: `%${trimmed}%`,
-      limit: 20,
-    });
+    try {
+      const data = await graphqlRequest(SEARCH_INTERNSHIPS_QUERY, {
+        pattern: `%${trimmed}%`,
+        limit: 20,
+      });
 
-    const backendResults = data?.trip || [];
-    const mergedResults = mergeSearchResults(backendResults, trimmed);
-    return mergedResults;
+      const backendResults = data?.trip || [];
+      const mergedResults = mergeSearchResults(backendResults, trimmed);
+      return mergedResults;
+    } catch (err) {
+      // If backend fails or times out, fall back to local mock data so UI stays responsive
+      console.warn('Search failed, falling back to mock:', err.message);
+      await delay(200);
+      return mergeSearchResults([], trimmed);
+    }
   },
 
   async getInternship(id) {

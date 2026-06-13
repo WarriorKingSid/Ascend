@@ -317,7 +317,17 @@ async function runSearch(query) {
     renderResults();
     document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (err) {
-    setError(err.message || 'Could not load internships. Check that your backend is running.');
+    // If backend fails, attempt to fall back to local mock results so the UI stays usable
+    console.warn('Search failed, falling back to local mock results:', err);
+    try {
+      state.internships = typeof mergeSearchResults === 'function'
+        ? mergeSearchResults([], state.query)
+        : [];
+      renderResults();
+      setError('Failed to fetch from backend — showing local results.');
+    } catch (fallbackErr) {
+      setError(err.message || 'Could not load internships. Check that your backend is running.');
+    }
   } finally {
     setLoading(false);
   }
