@@ -1,0 +1,95 @@
+ASCENT DEMO VIDEO NOTES
+
+Duration Target: 2–4 minutes
+
+---
+
+INTRO (0:00–0:20)
+
+Hello, my name is [Name], and this is Ascent.
+
+Ascent is an AI-powered opportunity discovery platform designed to help users find meaningful opportunities while reducing spam and improving recommendation quality.
+
+Our platform combines:
+
+* Opportunity recommendations
+* Trust verification
+* Intelligent filtering
+
+---
+
+PROBLEM (0:20–0:40)
+
+Students and users often struggle to find opportunities that are:
+
+* Relevant
+* Trustworthy
+* Worth their time
+
+Many platforms overwhelm users with listings but provide little personalization or quality control.
+
+Ascent solves this using AI.
+
+---
+
+FEATURE 1 — OPPORTUNITY RECOMMENDER (0:40–1:20)
+
+First, I’ll demonstrate the recommendation engine.
+
+When opportunities are added, our recommender evaluates:
+
+* Relevance
+* Accessibility
+* Educational value
+* Overall quality
+
+Each opportunity receives:
+
+* Recommendation score
+* Recommendation reasoning
+
+This helps users quickly identify high-value opportunities.
+
+[Show opportunity list + recommendation output]
+
+---
+
+FEATURE 2 — TRUST VERIFICATION (1:20–2:00)
+
+Next is Trust Verification.
+
+Every opportunity goes through an AI trust check.
+
+The system analyzes available information and classifies opportunities as:
+
+* Verified
+* Pending
+* Flagged
+
+This helps reduce unreliable or low-quality listings.
+
+[Show trust flow running]
+
+---
+
+SYSTEM DESIGN (2:00–2:40)
+
+Behind the scenes:
+
+Database Trigger
+→ AI Processing
+→ Recommendation Engine
+→ Trust Evaluation
+→ Final Output
+
+This allows recommendations and trust analysis to happen automatically.
+
+[Show actionflows briefly]
+
+---
+
+CLOSING (2:40–3:00)
+
+Ascent transforms opportunity discovery by making it smarter, safer, and more personalized.
+
+Thank you for watching.
